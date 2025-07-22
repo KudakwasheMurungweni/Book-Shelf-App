@@ -1,83 +1,124 @@
 package zw.co.BookShelf.BookApp.imp;
 
+import zw.co.BookShelf.BookApp.dto.BookDto.BookCreateDto;
+import zw.co.BookShelf.BookApp.dto.BookDto.BookResponseDto;
+import zw.co.BookShelf.BookApp.dto.BookDto.BookSummaryDto;
+import zw.co.BookShelf.BookApp.dto.BookDto.BookUpdateDto;
 import zw.co.BookShelf.BookApp.entity.Book;
 import zw.co.BookShelf.BookApp.Service.BookService;
+import zw.co.BookShelf.BookApp.Mapper.BookMapper;
 import zw.co.BookShelf.BookApp.Repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class BookServiceImp implements BookService {
 
     private final BookRepository bookRepository;
+    private final BookMapper bookMapper;
 
     @Autowired
-    public BookServiceImp(BookRepository bookRepository) {
+    public BookServiceImp(BookRepository bookRepository, BookMapper bookMapper) {
         this.bookRepository = bookRepository;
+        this.bookMapper = bookMapper;
     }
 
     @Override
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+    public List<BookSummaryDto> getAllBooks() {
+        return bookRepository.findAll()
+                .stream()
+                .map(bookMapper::toSummaryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Book> getBookById(Long id) {
-        return bookRepository.findById(id);
+    public Optional<BookResponseDto> getBookById(Long id) {
+        return bookRepository.findById(id)
+                .map(bookMapper::toResponseDto);
     }
 
     @Override
-    public Optional<Book> getBookByTitle(String title) {
-        return bookRepository.findByTitle(title);
+    public Optional<BookResponseDto> getBookByTitle(String title) {
+        return bookRepository.findByTitle(title)
+                .map(bookMapper::toResponseDto);
     }
 
     @Override
-    public List<Book> getBooksByTitleContaining(String title) {
-        return bookRepository.findByTitleContainingIgnoreCase(title);
+    public List<BookSummaryDto> getBooksByTitleContaining(String title) {
+        return bookRepository.findByTitleContainingIgnoreCase(title)
+                .stream()
+                .map(bookMapper::toSummaryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Book> getBooksByAuthorContaining(String author) {
-        return bookRepository.findByAuthorContainingIgnoreCase(author);
+    public List<BookSummaryDto> getBooksByAuthorContaining(String author) {
+        return bookRepository.findByAuthorContainingIgnoreCase(author)
+                .stream()
+                .map(bookMapper::toSummaryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Book> getBooksByGenre(String genre) {
-        return bookRepository.findByGenre(genre);
+    public List<BookSummaryDto> getBooksByGenre(String genre) {
+        return bookRepository.findByGenre(genre)
+                .stream()
+                .map(bookMapper::toSummaryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Book> getPublishedBooks() {
-        return bookRepository.findByIsPublished(true);
+    public List<BookSummaryDto> getRecentBooks() {
+        return bookRepository.findTop10ByOrderByBookIdDesc()
+                .stream()
+                .map(bookMapper::toSummaryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Book> getLatestBooks() {
-        return bookRepository.findTop10ByOrderByCreatedDateDesc();
+    public List<BookSummaryDto> getBooksByPagesGreaterThan(int pages) {
+        return bookRepository.findByNumberOfPagesGreaterThan(pages)
+                .stream()
+                .map(bookMapper::toSummaryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Book> getBooksByPagesGreaterThan(int pages) {
-        return bookRepository.findByPagesGreaterThan(pages);
+    public List<BookSummaryDto> getBooksByPagesBetween(int min, int max) {
+        return bookRepository.findByNumberOfPagesBetween(min, max)
+                .stream()
+                .map(bookMapper::toSummaryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Book> getBooksByPagesBetween(int min, int max) {
-        return bookRepository.findByPagesBetween(min, max);
+    public List<BookSummaryDto> getBooksByPublicationYear(int year) {
+        return bookRepository.findByPublicationYearGreaterThanEqual(year)
+                .stream()
+                .map(bookMapper::toSummaryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Book saveBook(Book book) {
-        return bookRepository.save(book);
+    public BookResponseDto createBook(BookCreateDto bookCreateDto) {
+        Book book = bookMapper.toEntity(bookCreateDto);
+        Book savedBook = bookRepository.save(book);
+        return bookMapper.toResponseDto(savedBook);
     }
 
     @Override
-    public void deleteBook(Book book) {
-        bookRepository.delete(book);
+    public BookResponseDto updateBook(BookUpdateDto bookUpdateDto) {
+        Book existingBook = bookRepository.findById(bookUpdateDto.getBookId())
+                .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookUpdateDto.getBookId()));
+
+        bookMapper.updateEntityFromDto(bookUpdateDto, existingBook);
+        Book updatedBook = bookRepository.save(existingBook);
+        return bookMapper.toResponseDto(updatedBook);
     }
 
     @Override

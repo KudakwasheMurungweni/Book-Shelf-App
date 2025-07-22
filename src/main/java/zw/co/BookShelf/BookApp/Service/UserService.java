@@ -1,30 +1,34 @@
 package zw.co.BookShelf.BookApp.Service;
 
+import zw.co.BookShelf.BookApp.dto.UserDto.UserCreateDto;
+import zw.co.BookShelf.BookApp.dto.UserDto.UserResponseDto;
+import zw.co.BookShelf.BookApp.dto.UserDto.UserUpdateDto;
 import zw.co.BookShelf.BookApp.entity.User;
 
 import java.util.Optional;
-
 import java.util.List;
-
-
 
 public interface UserService {
 
-    List<User> getAllUsers();
+    List<UserResponseDto> getAllUsers();
 
-    Optional<User> getUserById(Long id);
+    Optional<UserResponseDto> getUserById(Long id);
 
-    Optional<User> getUserByEmail(String email);
+    Optional<UserResponseDto> getUserByEmail(String email);
 
-    Optional<User> getUserByUsername(String userName);
+    Optional<UserResponseDto> getUserByUsername(String userName);
+
     boolean existsByEmail(String email);
 
-boolean existsByUsername(String userName);
+    boolean existsByUsername(String userName);
 
-List<User> getUserByRole(String role);
+    List<UserResponseDto> getUserByRole(String role);
 
-User saveuser(User user);
+    UserResponseDto createUser(UserCreateDto userCreateDto);
 
-void deleteuser(User user);
+    UserResponseDto updateUser(UserUpdateDto userUpdateDto);
 
+    void deleteUser(Long id);
+
+    void deleteUser(User user);
 }

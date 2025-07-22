@@ -1,8 +1,14 @@
 package zw.co.BookShelf.BookApp.Controller;
 
-import zw.co.BookShelf.BookApp.entity.Book;
+import jakarta.validation.Valid;
+import zw.co.BookShelf.BookApp.dto.BookDto.BookCreateDto;
+import zw.co.BookShelf.BookApp.dto.BookDto.BookResponseDto;
+import zw.co.BookShelf.BookApp.dto.BookDto.BookSummaryDto;
+import zw.co.BookShelf.BookApp.dto.BookDto.BookUpdateDto;
 import zw.co.BookShelf.BookApp.Service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,77 +26,97 @@ public class BookController {
     }
 
     @GetMapping
-    public List<Book> getAllBooks() {
-        return bookService.getAllBooks();
+    public ResponseEntity<List<BookSummaryDto>> getAllBooks() {
+        List<BookSummaryDto> books = bookService.getAllBooks();
+        return ResponseEntity.ok(books);
     }
 
     @GetMapping("/{id}")
-    public Optional<Book> getBookById(@PathVariable Long id) {
-        return bookService.getBookById(id);
+    public ResponseEntity<BookResponseDto> getBookById(@PathVariable Long id) {
+        Optional<BookResponseDto> book = bookService.getBookById(id);
+        return book.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/title/{title}")
-    public Optional<Book> getBookByTitle(@PathVariable String title) {
-        return bookService.getBookByTitle(title);
+    public ResponseEntity<BookResponseDto> getBookByTitle(@PathVariable String title) {
+        Optional<BookResponseDto> book = bookService.getBookByTitle(title);
+        return book.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/search/title/{title}")
-    public List<Book> getBooksByTitleContaining(@PathVariable String title) {
-        return bookService.getBooksByTitleContaining(title);
+    public ResponseEntity<List<BookSummaryDto>> getBooksByTitleContaining(@PathVariable String title) {
+        List<BookSummaryDto> books = bookService.getBooksByTitleContaining(title);
+        return ResponseEntity.ok(books);
     }
 
     @GetMapping("/search/author/{author}")
-    public List<Book> getBooksByAuthorContaining(@PathVariable String author) {
-        return bookService.getBooksByAuthorContaining(author);
+    public ResponseEntity<List<BookSummaryDto>> getBooksByAuthorContaining(@PathVariable String author) {
+        List<BookSummaryDto> books = bookService.getBooksByAuthorContaining(author);
+        return ResponseEntity.ok(books);
     }
 
     @GetMapping("/genre/{genre}")
-    public List<Book> getBooksByGenre(@PathVariable String genre) {
-        return bookService.getBooksByGenre(genre);
+    public ResponseEntity<List<BookSummaryDto>> getBooksByGenre(@PathVariable String genre) {
+        List<BookSummaryDto> books = bookService.getBooksByGenre(genre);
+        return ResponseEntity.ok(books);
     }
 
-    @GetMapping("/published")
-    public List<Book> getPublishedBooks() {
-        return bookService.getPublishedBooks();
-    }
-
-    @GetMapping("/latest")
-    public List<Book> getLatestBooks() {
-        return bookService.getLatestBooks();
+    @GetMapping("/recent")
+    public ResponseEntity<List<BookSummaryDto>> getRecentBooks() {
+        List<BookSummaryDto> books = bookService.getRecentBooks();
+        return ResponseEntity.ok(books);
     }
 
     @GetMapping("/pages/greater/{pages}")
-    public List<Book> getBooksByPagesGreaterThan(@PathVariable int pages) {
-        return bookService.getBooksByPagesGreaterThan(pages);
+    public ResponseEntity<List<BookSummaryDto>> getBooksByPagesGreaterThan(@PathVariable int pages) {
+        List<BookSummaryDto> books = bookService.getBooksByPagesGreaterThan(pages);
+        return ResponseEntity.ok(books);
     }
 
     @GetMapping("/pages/between/{min}/{max}")
-    public List<Book> getBooksByPagesBetween(@PathVariable int min, @PathVariable int max) {
-        return bookService.getBooksByPagesBetween(min, max);
+    public ResponseEntity<List<BookSummaryDto>> getBooksByPagesBetween(@PathVariable int min, @PathVariable int max) {
+        List<BookSummaryDto> books = bookService.getBooksByPagesBetween(min, max);
+        return ResponseEntity.ok(books);
+    }
+
+    @GetMapping("/year/{year}")
+    public ResponseEntity<List<BookSummaryDto>> getBooksByPublicationYear(@PathVariable int year) {
+        List<BookSummaryDto> books = bookService.getBooksByPublicationYear(year);
+        return ResponseEntity.ok(books);
     }
 
     @PostMapping
-    public Book createBook(@RequestBody Book book) {
-        return bookService.saveBook(book);
+    public ResponseEntity<BookResponseDto> createBook(@Valid @RequestBody BookCreateDto bookCreateDto) {
+        BookResponseDto createdBook = bookService.createBook(bookCreateDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
     }
 
-    @PutMapping
-    public Book updateBook(@RequestBody Book book) {
-        return bookService.saveBook(book);
+    @PutMapping("/{id}")
+    public ResponseEntity<BookResponseDto> updateBook(@PathVariable Long id, @Valid @RequestBody BookUpdateDto bookUpdateDto) {
+        bookUpdateDto.setBookId(id);
+        try {
+            BookResponseDto updatedBook = bookService.updateBook(bookUpdateDto);
+            return ResponseEntity.ok(updatedBook);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBookById(@PathVariable Long id) {
-        bookService.deleteBookById(id);
-    }
-
-    @DeleteMapping
-    public void deleteBook(@RequestBody Book book) {
-        bookService.deleteBook(book);
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        try {
+            bookService.deleteBookById(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/exists/{id}")
-    public boolean existsById(@PathVariable Long id) {
-        return bookService.existsById(id);
+    public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
+        boolean exists = bookService.existsById(id);
+        return ResponseEntity.ok(exists);
     }
 }

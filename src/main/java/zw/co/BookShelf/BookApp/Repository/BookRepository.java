@@ -1,29 +1,29 @@
 package zw.co.BookShelf.BookApp.Repository;
 
 import zw.co.BookShelf.BookApp.entity.Book;
-
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.List;
 
+public interface BookRepository extends JpaRepository<Book, Long> {
 
-public interface BookRepository extends JpaRepository<Book, Long>{
+    List<Book> findByTitleContainingIgnoreCase(String title);
 
-    List<Book>  findByTitleContainingIgnoreCase(String title);
-    List<Book>  findByAuthorContainingIgnoreCase(String author);
+    List<Book> findByAuthorContainingIgnoreCase(String author);
+
     List<Book> findByGenre(String genre);
 
-    List<Book> findByIsPublished(boolean isPublished);
+    @Query("SELECT b FROM Book b ORDER BY b.bookId DESC")
+    List<Book> findTop10ByOrderByBookIdDesc();
 
-    List<Book> findTop10ByOrderByCreatedDateDesc(); //latest books
+    List<Book> findByNumberOfPagesGreaterThan(int pages);
 
-    List<Book> findByPagesGreaterThan(int pages);
+    List<Book> findByNumberOfPagesBetween(int min, int max);
 
-    List<Book> findByPagesBetween(int min, int max);
+    Optional<Book> findByTitle(String title);
 
-    Optional<Book> findByTitle(String title); // if titles are unique
-
+    @Query("SELECT b FROM Book b WHERE b.publicationYear >= :year")
+    List<Book> findByPublicationYearGreaterThanEqual(@Param("year") int year);
 }
