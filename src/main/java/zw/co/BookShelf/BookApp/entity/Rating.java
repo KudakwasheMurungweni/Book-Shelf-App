@@ -13,15 +13,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "user_books", uniqueConstraints = {
+@Table(name = "ratings", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "book_id"})
 })
 @EntityListeners(AuditingEntityListener.class)
-public class UserBook {
+public class Rating {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long ratingId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -31,30 +31,8 @@ public class UserBook {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ReadingStatus.Status status = ReadingStatus.Status.WANT_TO_READ;
-
-    @Column(nullable = false)
-    private Integer currentPage = 0;
-
-    @Column(nullable = false)
-    private Integer progressPercentage = 0;
-
-    @Column(nullable = false)
-    private Boolean isFavorite = false;
-
-    @Column(nullable = false)
-    private Boolean isPublicShelf = false;
-
-    @Column(length = 500)
-    private String notes;
-
-    private Integer rating; // 1-5 stars
-
-    private LocalDateTime startedDate;
-
-    private LocalDateTime finishedDate;
+    private Integer ratingValue; // 1-5 stars
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

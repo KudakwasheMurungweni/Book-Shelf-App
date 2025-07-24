@@ -13,15 +13,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "user_books", uniqueConstraints = {
+@Table(name = "reading_statuses", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "book_id"})
 })
 @EntityListeners(AuditingEntityListener.class)
-public class UserBook {
+public class ReadingStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long statusId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -33,7 +33,7 @@ public class UserBook {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ReadingStatus.Status status = ReadingStatus.Status.WANT_TO_READ;
+    private Status status;
 
     @Column(nullable = false)
     private Integer currentPage = 0;
@@ -41,20 +41,15 @@ public class UserBook {
     @Column(nullable = false)
     private Integer progressPercentage = 0;
 
-    @Column(nullable = false)
-    private Boolean isFavorite = false;
+    private LocalDateTime startedDate;
 
-    @Column(nullable = false)
-    private Boolean isPublicShelf = false;
+    private LocalDateTime finishedDate;
 
     @Column(length = 500)
     private String notes;
 
-    private Integer rating; // 1-5 stars
-
-    private LocalDateTime startedDate;
-
-    private LocalDateTime finishedDate;
+    @Column(nullable = false)
+    private Boolean isPublic = false;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -63,4 +58,12 @@ public class UserBook {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedDate;
+
+    public enum Status {
+        WANT_TO_READ,
+        CURRENTLY_READING,
+        READ,
+        DNF, // Did Not Finish
+
+    }
 }

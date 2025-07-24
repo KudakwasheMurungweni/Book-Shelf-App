@@ -1,102 +1,116 @@
 package zw.co.BookShelf.BookApp.entity;
-import  jakarta.persistence.*;
 
-/**
- * Represents a user entity in the BookApp application.
- * This class is used to define the properties and behavior of a user.
- */
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "users")
+@EntityListeners(AuditingEntityListener.class)
+public class User implements UserDetails {
 
-public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
+    @Column(nullable = false, length = 100)
     private String firstName;
 
+    @Column(nullable = false, length = 100)
     private String lastName;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false, length = 50)
     private String userName;
 
-    @Column(unique=true)
+    @Column(unique = true, nullable = false, length = 100)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
-    private boolean role;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
 
+    @Column(nullable = false)
+    private Boolean isEnabled = true;
 
-    public User(){}
-    public User(long id, String firstName, String lastName, String userName, String email, String password, boolean role){
+    @Column(nullable = false)
+    private Boolean isAccountNonExpired = true;
 
-        this.id  = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.userName = userName;
-        this.email = email;
-        this.password = password;
-        this.role = role;
+    @Column(nullable = false)
+    private Boolean isAccountNonLocked = true;
 
+    @Column(nullable = false)
+    private Boolean isCredentialsNonExpired = true;
 
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdDate;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime updatedDate;
+
+    // Relationships
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<UserBook> userBooks;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Review> reviews;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Rating> ratings;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<ReadingStatus> readingStatuses;
+
+    // UserDetails implementation
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    public long getId (){
-        return id;
-    }
-    public void setId(long id){
-        this.id = id;
-    }
-
-    public String getFirstName (){
-
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName(){
-        return lastName;
-    }
-    public void setLastName(String lastName){
-        this.lastName = lastName;
-    }
-
-    public String getUserName() {
+    @Override
+    public String getUsername() {
         return userName;
     }
 
-    public void setUserName(String userName){
-        this.userName = userName;
+    @Override
+    public boolean isAccountNonExpired() {
+        return isAccountNonExpired;
     }
 
-    public String getEmail(){
-        return email;
+    @Override
+    public boolean isAccountNonLocked() {
+        return isAccountNonLocked;
     }
 
-    public void setEmail(String email){
-        this.email = email;
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return isCredentialsNonExpired;
     }
 
-    public String getPassword(){
-        return password;
+    @Override
+    public boolean isEnabled() {
+        return isEnabled;
     }
 
-    public void setPassword(String password){
-        this.password = password;
-    }
-
-    public boolean isRole() {
-        return role;
-    }
-
-    public void setRole(boolean role) {
-        this.role = role;
+    public enum Role {
+        USER, ADMIN,
     }
 }
