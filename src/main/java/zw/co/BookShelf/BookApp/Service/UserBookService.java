@@ -4,6 +4,8 @@ import zw.co.BookShelf.BookApp.dto.UserBookDto.UserBookCreateDto;
 import zw.co.BookShelf.BookApp.dto.UserBookDto.UserBookResponseDto;
 import zw.co.BookShelf.BookApp.dto.UserBookDto.UserBookSummaryDto;
 import zw.co.BookShelf.BookApp.dto.UserBookDto.UserBookUpdateDto;
+import zw.co.BookShelf.BookApp.dto.UserBookDto.AssignBookToShelfDTO;
+import zw.co.BookShelf.BookApp.entity.Book;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +23,6 @@ public interface UserBookService {
     UserBookResponseDto createUserBook(UserBookCreateDto userBookCreateDto);
     UserBookResponseDto updateUserBook(UserBookUpdateDto userBookUpdateDto);
     void deleteUserBookById(Long id);
+    void assignBookToShelf(Long userId, AssignBookToShelfDTO dto);
+    List<Book> getBooksByShelf(Long shelfId);
 }

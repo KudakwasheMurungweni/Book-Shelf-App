@@ -6,6 +6,8 @@ import zw.co.BookShelf.BookApp.dto.BookDto.BookSummaryDto;
 import zw.co.BookShelf.BookApp.dto.BookDto.BookUpdateDto;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface BookService {
     List<BookSummaryDto> getAllBooks();
@@ -22,4 +24,5 @@ public interface BookService {
     BookResponseDto updateBook(BookUpdateDto bookUpdateDto);
     void deleteBookById(Long id);
     boolean existsById(Long id);
+    Page<BookSummaryDto> getAllBooksPaged(Pageable pageable, String keyword);
 }

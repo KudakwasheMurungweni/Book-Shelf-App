@@ -7,12 +7,18 @@ import zw.co.BookShelf.BookApp.dto.BookDto.BookSummaryDto;
 import zw.co.BookShelf.BookApp.dto.BookDto.BookUpdateDto;
 import zw.co.BookShelf.BookApp.Service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/books")
@@ -118,5 +124,34 @@ public class BookController {
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         boolean exists = bookService.existsById(id);
         return ResponseEntity.ok(exists);
+    }
+
+    /**
+     * Paginated, sortable, and searchable endpoint for books.
+     * Example: /api/books/paged?page=0&size=10&sort=title,asc&keyword=java
+     */
+    @GetMapping("/paged")
+    public ResponseEntity<Page<BookSummaryDto>> getBooksPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "title,asc") String[] sort,
+            @RequestParam(required = false) String keyword
+    ) {
+        Sort sorting = Sort.by(parseSort(sort));
+        Pageable pageable = PageRequest.of(page, Math.min(size, 50), sorting);
+        Page<BookSummaryDto> result = bookService.getAllBooksPaged(pageable, keyword);
+        return ResponseEntity.ok(result);
+    }
+
+    // Helper to parse sort parameters
+    private List<Sort.Order> parseSort(String[] sort) {
+        return Arrays.stream(sort)
+                .map(s -> {
+                    String[] parts = s.split(",");
+                    return new Sort.Order(
+                            parts.length > 1 && parts[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC,
+                            parts[0]
+                    );
+                }).collect(Collectors.toList());
     }
 }

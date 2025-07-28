@@ -12,12 +12,15 @@ import zw.co.BookShelf.BookApp.Mapper.UserBookMapper;
 import zw.co.BookShelf.BookApp.Repository.UserBookRepository;
 import zw.co.BookShelf.BookApp.Repository.UserRepository;
 import zw.co.BookShelf.BookApp.Repository.BookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import zw.co.BookShelf.BookApp.dto.UserBookDto.AssignBookToShelfDTO;
+import zw.co.BookShelf.BookApp.entity.Shelf;
+import zw.co.BookShelf.BookApp.Repository.ShelfRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
@@ -27,14 +30,17 @@ public class UserBookServiceImp implements UserBookService {
     private final UserBookMapper userBookMapper;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final ShelfRepository shelfRepository;
 
     @Autowired
     public UserBookServiceImp(UserBookRepository userBookRepository, UserBookMapper userBookMapper,
-                              UserRepository userRepository, BookRepository bookRepository) {
+                              UserRepository userRepository, BookRepository bookRepository,
+                              ShelfRepository shelfRepository) {
         this.userBookRepository = userBookRepository;
         this.userBookMapper = userBookMapper;
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
+        this.shelfRepository = shelfRepository;
     }
 
     @Override
@@ -143,5 +149,34 @@ public class UserBookServiceImp implements UserBookService {
     @Override
     public void deleteUserBookById(Long id) {
         userBookRepository.deleteById(id);
+    }
+
+    @Override
+    public void assignBookToShelf(Long userId, AssignBookToShelfDTO dto) {
+        if (userBookRepository.existsByUserIdAndBookIdAndShelfId(userId, dto.getBookId(), dto.getShelfId())) {
+            throw new IllegalArgumentException("Book already exists on this shelf");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Book book = bookRepository.findById(dto.getBookId())
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        Shelf shelf = shelfRepository.findById(dto.getShelfId())
+                .orElseThrow(() -> new RuntimeException("Shelf not found"));
+        if (shelf.getUser() == null || !shelf.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You do not own this shelf or shelf has no owner");
+        }
+        UserBook userBook = new UserBook();
+        userBook.setUser(user);
+        userBook.setBook(book);
+        userBook.setShelf(shelf);
+        userBookRepository.save(userBook);
+    }
+
+    @Override
+    public List<Book> getBooksByShelf(Long shelfId) {
+        return userBookRepository.findByShelfId(shelfId)
+                .stream()
+                .map(UserBook::getBook)
+                .collect(Collectors.toList());
     }
 }

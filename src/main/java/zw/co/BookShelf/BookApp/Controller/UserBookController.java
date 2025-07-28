@@ -8,11 +8,14 @@ import zw.co.BookShelf.BookApp.dto.UserBookDto.UserBookUpdateDto;
 import zw.co.BookShelf.BookApp.Service.UserBookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import zw.co.BookShelf.BookApp.dto.UserBookDto.AssignBookToShelfDTO;
+import zw.co.BookShelf.BookApp.entity.Book;
 
 @RestController
 @RequestMapping("/api/userbooks")
@@ -116,5 +119,19 @@ public class UserBookController {
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // For demonstration, using a mock userId. Replace with authenticated user in production.
+    private final Long mockUserId = 1L;
+
+    @PostMapping(value = "/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> assignBookToShelf(@RequestBody AssignBookToShelfDTO dto) {
+        userBookService.assignBookToShelf(mockUserId, dto);
+        return ResponseEntity.ok("Book assigned to shelf successfully");
+    }
+
+    @GetMapping("/shelf/{shelfId}")
+    public ResponseEntity<List<Book>> getBooksByShelf(@PathVariable Long shelfId) {
+        return ResponseEntity.ok(userBookService.getBooksByShelf(shelfId));
     }
 }

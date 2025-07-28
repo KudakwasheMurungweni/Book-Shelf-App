@@ -31,6 +31,10 @@ public class UserBook {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shelf_id")
+    private Shelf shelf;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReadingStatus.Status status = ReadingStatus.Status.WANT_TO_READ;

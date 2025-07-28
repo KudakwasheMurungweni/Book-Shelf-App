@@ -28,5 +28,7 @@ public interface UserBookRepository extends JpaRepository<UserBook, Long>{
 
     List<UserBook> findTop5ByUserIdOrderByAddedDateDesc(Long userId) ; //recently added
 
+    List<UserBook> findByShelfId(Long shelfId);
 
+    boolean existsByUserIdAndBookIdAndShelfId(Long userId, Long bookId, Long shelfId);
 }
