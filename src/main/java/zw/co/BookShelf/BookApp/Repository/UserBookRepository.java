@@ -18,13 +18,9 @@ public interface UserBookRepository extends JpaRepository<UserBook, Long>{
 
     Optional<UserBook> findByUserIdAndBookId(Long userId, Long bookId);
 
-    List<UserBook> findByUserIdAndStatus(Long userId, String status);
+    List<UserBook> findByUserIdAndStatus(Long userId, ReadingStatus.Status status);
 
     List<UserBook> findByUserIdOrderByAddedDateDesc(Long userId);
-
-    boolean existsByUserIdAndBookId(Long userId, Long bookId);
-
-    int countByUserIdAndStatus(Long userId, String status) ;// count of wishlist items
 
     List<UserBook> findTop5ByUserIdOrderByAddedDateDesc(Long userId) ; //recently added
 

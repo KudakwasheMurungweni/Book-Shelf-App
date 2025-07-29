@@ -67,4 +67,8 @@ public class UserBook {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedDate;
+
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime addedDate;
 }

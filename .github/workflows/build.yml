@@ -37,3 +37,28 @@ jobs:
         with:
           name: jar-artifact
           path: target/*.jar
+
+      - name: Run Checkstyle
+        run: mvn checkstyle:check
+
+      - name: Run SpotBugs
+        run: mvn spotbugs:check
+
+      - name: Run JaCoCo Test Coverage
+        run: mvn jacoco:report
+
+      - name: Upload JaCoCo coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+
+      # Optionally, publish test results
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: target/surefire-reports

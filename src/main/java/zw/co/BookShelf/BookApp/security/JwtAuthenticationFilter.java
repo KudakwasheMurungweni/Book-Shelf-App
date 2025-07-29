@@ -8,10 +8,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.GenericFilterBean;
 import java.io.IOException;
 
+/**
+ * JWT Authentication Filter for validating JWT tokens in incoming requests.
+ */
 @Component
-public class JwtAuthenticationFilter extends GenericFilter {
+public class JwtAuthenticationFilter extends GenericFilterBean {
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
@@ -21,13 +25,18 @@ public class JwtAuthenticationFilter extends GenericFilter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        String header = ((HttpServletRequest) request).getHeader("Authorization");
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String header = httpRequest.getHeader("Authorization");
         String token = null;
         String username = null;
 
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
-            username = jwtTokenUtil.getUsernameFromToken(token);
+            try {
+                username = jwtTokenUtil.getUsernameFromToken(token);
+            } catch (Exception e) {
+                // Optionally log invalid token
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
