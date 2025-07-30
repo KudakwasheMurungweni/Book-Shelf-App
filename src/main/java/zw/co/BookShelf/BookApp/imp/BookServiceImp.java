@@ -14,13 +14,19 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import zw.co.BookShelf.BookApp.Exceptions.ResourceNotFoundException;
 
 @Service
 @Transactional
 public class BookServiceImp implements BookService {
+
+    private static final Logger logger = LoggerFactory.getLogger(BookServiceImp.class);
 
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
@@ -33,6 +39,7 @@ public class BookServiceImp implements BookService {
 
     @Override
     public List<BookSummaryDto> getAllBooks() {
+        logger.info("Service: getAllBooks called");
         return bookRepository.findAll()
                 .stream()
                 .map(bookMapper::toSummaryDto)
@@ -41,6 +48,7 @@ public class BookServiceImp implements BookService {
 
     @Override
     public Optional<BookResponseDto> getBookById(Long id) {
+        logger.info("Service: getBookById called with id={}", id);
         return bookRepository.findById(id)
                 .map(bookMapper::toResponseDto);
     }
@@ -109,6 +117,7 @@ public class BookServiceImp implements BookService {
 
     @Override
     public BookResponseDto createBook(BookCreateDto bookCreateDto) {
+        logger.info("Service: createBook called with title={}", bookCreateDto.getTitle());
         Book book = bookMapper.toEntity(bookCreateDto);
         Book savedBook = bookRepository.save(book);
         return bookMapper.toResponseDto(savedBook);
@@ -116,8 +125,9 @@ public class BookServiceImp implements BookService {
 
     @Override
     public BookResponseDto updateBook(BookUpdateDto bookUpdateDto) {
+        logger.info("Service: updateBook called with id={}", bookUpdateDto.getBookId());
         Book existingBook = bookRepository.findById(bookUpdateDto.getBookId())
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookUpdateDto.getBookId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookUpdateDto.getBookId()));
 
         bookMapper.updateEntityFromDto(bookUpdateDto, existingBook);
         Book updatedBook = bookRepository.save(existingBook);
@@ -126,6 +136,7 @@ public class BookServiceImp implements BookService {
 
     @Override
     public void deleteBookById(Long id) {
+        logger.info("Service: deleteBookById called with id={}", id);
         bookRepository.deleteById(id);
     }
 

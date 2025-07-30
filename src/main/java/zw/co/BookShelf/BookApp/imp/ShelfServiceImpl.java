@@ -7,11 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import zw.co.BookShelf.BookApp.Repository.ShelfRepository;
 import zw.co.BookShelf.BookApp.Repository.UserRepository;
-import zw.co.BookShelf.BookApp.mapper.ShelfMapper;
+import zw.co.BookShelf.BookApp.Mapper.ShelfMapper;
 import zw.co.BookShelf.BookApp.Service.ShelfService;
 import zw.co.BookShelf.BookApp.dto.ShelfDto.*;
 import zw.co.BookShelf.BookApp.entity.Shelf;
 import zw.co.BookShelf.BookApp.entity.User;
+import zw.co.BookShelf.BookApp.Exceptions.ResourceNotFoundException;
+import zw.co.BookShelf.BookApp.Exceptions.CustomeException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,7 +41,7 @@ public class ShelfServiceImpl implements ShelfService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     logger.error("User not found: {}", userId);
-                    return new RuntimeException("User not found");
+                    return new ResourceNotFoundException("User not found");
                 });
         Shelf shelf = shelfMapper.toEntity(dto);
         shelf.setUser(user);
@@ -64,11 +66,11 @@ public class ShelfServiceImpl implements ShelfService {
         Shelf shelf = shelfRepository.findById(shelfId)
                 .orElseThrow(() -> {
                     logger.error("Shelf not found: {}", shelfId);
-                    return new RuntimeException("Shelf not found");
+                    return new ResourceNotFoundException("Shelf not found");
                 });
         if (!shelf.getUser().getId().equals(userId)) {
             logger.error("User {} attempted to update shelf {} not owned by them", userId, shelfId);
-            throw new RuntimeException("Not your shelf");
+            throw new CustomeException("Not your shelf");
         }
         shelfMapper.updateEntityFromDto(dto, shelf);
         Shelf updatedShelf = shelfRepository.save(shelf);
@@ -83,11 +85,11 @@ public class ShelfServiceImpl implements ShelfService {
         Shelf shelf = shelfRepository.findById(shelfId)
                 .orElseThrow(() -> {
                     logger.error("Shelf not found: {}", shelfId);
-                    return new RuntimeException("Shelf not found");
+                    return new ResourceNotFoundException("Shelf not found");
                 });
         if (!shelf.getUser().getId().equals(userId)) {
             logger.error("User {} attempted to delete shelf {} not owned by them", userId, shelfId);
-            throw new RuntimeException("Not your shelf");
+            throw new CustomeException("Not your shelf");
         }
         shelfRepository.delete(shelf);
         logger.info("Shelf deleted with id={}", shelfId);
@@ -100,5 +102,17 @@ public class ShelfServiceImpl implements ShelfService {
                 .filter(Shelf::isPublic)
                 .map(shelfMapper::toResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ShelfResponseDto getShelfById(Long shelfId, Long userId) {
+        logger.info("Fetching shelfId={} for userId={}", shelfId, userId);
+        Shelf shelf = shelfRepository.findById(shelfId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shelf not found with id: " + shelfId));
+        if (!shelf.getUser().getId().equals(userId)) {
+            logger.error("User {} attempted to access shelf {} not owned by them", userId, shelfId);
+            throw new CustomeException("Not your shelf");
+        }
+        return shelfMapper.toResponseDto(shelf);
     }
 }

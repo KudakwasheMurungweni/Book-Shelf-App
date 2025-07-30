@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import zw.co.BookShelf.BookApp.Exceptions.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -81,7 +82,7 @@ public class UserServiceImp implements UserService {
     @Override
     public UserResponseDto updateUser(UserUpdateDto userUpdateDto) {
         User existingUser = userRepository.findById(userUpdateDto.getId())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userUpdateDto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userUpdateDto.getId()));
 
         userMapper.updateEntityFromDto(userUpdateDto, existingUser);
         User updatedUser = userRepository.save(existingUser);

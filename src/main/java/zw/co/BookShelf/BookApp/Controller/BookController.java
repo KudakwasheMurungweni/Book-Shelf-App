@@ -15,6 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +26,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
+
+    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
 
     private final BookService bookService;
 
@@ -33,12 +38,14 @@ public class BookController {
 
     @GetMapping
     public ResponseEntity<List<BookSummaryDto>> getAllBooks() {
+        logger.info("Fetching all books");
         List<BookSummaryDto> books = bookService.getAllBooks();
         return ResponseEntity.ok(books);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<BookResponseDto> getBookById(@PathVariable Long id) {
+        logger.info("Fetching book by id: {}", id);
         Optional<BookResponseDto> book = bookService.getBookById(id);
         return book.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -95,27 +102,32 @@ public class BookController {
 
     @PostMapping
     public ResponseEntity<BookResponseDto> createBook(@Valid @RequestBody BookCreateDto bookCreateDto) {
+        logger.info("Creating book with title: {}", bookCreateDto.getTitle());
         BookResponseDto createdBook = bookService.createBook(bookCreateDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDto> updateBook(@PathVariable Long id, @Valid @RequestBody BookUpdateDto bookUpdateDto) {
+        logger.info("Updating book with id: {}", id);
         bookUpdateDto.setBookId(id);
         try {
             BookResponseDto updatedBook = bookService.updateBook(bookUpdateDto);
             return ResponseEntity.ok(updatedBook);
         } catch (RuntimeException e) {
+            logger.warn("Book not found for update: {}", id);
             return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        logger.info("Deleting book with id: {}", id);
         try {
             bookService.deleteBookById(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
+            logger.warn("Book not found for deletion: {}", id);
             return ResponseEntity.notFound().build();
         }
     }
@@ -137,6 +149,7 @@ public class BookController {
             @RequestParam(defaultValue = "title,asc") String[] sort,
             @RequestParam(required = false) String keyword
     ) {
+        logger.info("Fetching paged books: page={}, size={}, sort={}, keyword={}", page, size, sort, keyword);
         Sort sorting = Sort.by(parseSort(sort));
         Pageable pageable = PageRequest.of(page, Math.min(size, 50), sorting);
         Page<BookSummaryDto> result = bookService.getAllBooksPaged(pageable, keyword);

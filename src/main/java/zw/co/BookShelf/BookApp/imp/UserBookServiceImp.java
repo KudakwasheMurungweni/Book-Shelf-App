@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import zw.co.BookShelf.BookApp.Exceptions.ResourceNotFoundException;
+import zw.co.BookShelf.BookApp.Exceptions.CustomeException;
 
 @Service
 @Transactional
@@ -117,15 +119,15 @@ public class UserBookServiceImp implements UserBookService {
     public UserBookResponseDto createUserBook(UserBookCreateDto userBookCreateDto) {
         // Verify user exists
         User user = userRepository.findById(userBookCreateDto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userBookCreateDto.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userBookCreateDto.getUserId()));
 
         // Verify book exists
         Book book = bookRepository.findById(userBookCreateDto.getBookId())
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + userBookCreateDto.getBookId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + userBookCreateDto.getBookId()));
 
         // Check if user already has this book
         if (userBookRepository.existsByUserIdAndBookId(userBookCreateDto.getUserId(), userBookCreateDto.getBookId())) {
-            throw new RuntimeException("User already has this book in their shelf");
+            throw new CustomeException("User already has this book in their shelf");
         }
 
         UserBook userBook = userBookMapper.toEntity(userBookCreateDto);
@@ -139,7 +141,7 @@ public class UserBookServiceImp implements UserBookService {
     @Override
     public UserBookResponseDto updateUserBook(UserBookUpdateDto userBookUpdateDto) {
         UserBook existingUserBook = userBookRepository.findById(userBookUpdateDto.getId())
-                .orElseThrow(() -> new RuntimeException("UserBook not found with id: " + userBookUpdateDto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("UserBook not found with id: " + userBookUpdateDto.getId()));
 
         userBookMapper.updateEntityFromDto(userBookUpdateDto, existingUserBook);
         UserBook updatedUserBook = userBookRepository.save(existingUserBook);
@@ -154,16 +156,16 @@ public class UserBookServiceImp implements UserBookService {
     @Override
     public void assignBookToShelf(Long userId, AssignBookToShelfDTO dto) {
         if (userBookRepository.existsByUserIdAndBookIdAndShelfId(userId, dto.getBookId(), dto.getShelfId())) {
-            throw new IllegalArgumentException("Book already exists on this shelf");
+            throw new CustomeException("Book already exists on this shelf");
         }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Book book = bookRepository.findById(dto.getBookId())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
         Shelf shelf = shelfRepository.findById(dto.getShelfId())
-                .orElseThrow(() -> new RuntimeException("Shelf not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Shelf not found"));
         if (shelf.getUser() == null || !shelf.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You do not own this shelf or shelf has no owner");
+            throw new CustomeException("You do not own this shelf or shelf has no owner");
         }
         UserBook userBook = new UserBook();
         userBook.setUser(user);

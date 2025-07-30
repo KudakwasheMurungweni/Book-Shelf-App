@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        profile: [dev, prod]
 
     steps:
       - uses: actions/checkout@v4
@@ -27,15 +30,15 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Run tests
-        run: mvn clean test
+        run: mvn clean test -Dspring.profiles.active=${{ matrix.profile }}
 
       - name: Build application
-        run: mvn clean compile package -skipTests
+        run: mvn clean compile package -Dspring.profiles.active=${{ matrix.profile }} -DskipTests
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: jar-artifact
+          name: jar-artifact-${{ matrix.profile }}
           path: target/*.jar
 
       - name: Run Checkstyle
