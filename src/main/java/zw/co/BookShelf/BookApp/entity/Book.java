@@ -84,4 +84,35 @@ public class Book {
 
     @ManyToMany(mappedBy = "favoriteBooks")
     private Set<User> favoriteByUsers;
+
+    @Column(unique = true)
+    private String googleBookId;
+
+    private String thumbnailUrl;
+
+    private String previewLink;
+
+    public String getGoogleBookId() {
+        return googleBookId;
+    }
+
+    public void setGoogleBookId(String googleBookId) {
+        this.googleBookId = googleBookId;
+    }
+
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public String getPreviewLink() {
+        return previewLink;
+    }
+
+    public void setPreviewLink(String previewLink) {
+        this.previewLink = previewLink;
+    }
 }

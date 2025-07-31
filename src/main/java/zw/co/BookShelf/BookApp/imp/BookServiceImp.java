@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import zw.co.BookShelf.BookApp.Exceptions.ResourceNotFoundException;
+import zw.co.BookShelf.BookApp.dto.GoogleBookPreviewDto;
 
 @Service
 @Transactional
@@ -153,6 +154,34 @@ public class BookServiceImp implements BookService {
         } else {
             return bookRepository.findByTitleContainingIgnoreCase(keyword, pageable)
                     .map(bookMapper::toSummaryDto);
+        }
+    }
+
+    @Override
+    public boolean existsByGoogleBookId(String googleBookId) {
+        return bookRepository.existsByGoogleBookId(googleBookId);
+    }
+
+    @Override
+    public BookResponseDto saveGoogleBook(GoogleBookPreviewDto dto) {
+        Book book = new Book();
+        book.setGoogleBookId(dto.getGoogleBookId());
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthors() != null ? String.join(", ", dto.getAuthors()) : "");
+        book.setPublicationYear(parseYear(dto.getPublishedDate()));
+        book.setNumberOfPages(dto.getPageCount());
+        book.setGenre((dto.getCategories() != null && !dto.getCategories().isEmpty()) ? dto.getCategories().get(0) : "Uncategorized");
+        book.setDescription(dto.getDescription());
+        book.setThumbnailUrl(dto.getThumbnailUrl());
+
+        return bookMapper.toResponseDto(bookRepository.save(book));
+    }
+
+    private int parseYear(String date) {
+        try {
+            return Integer.parseInt(date.substring(0, 4));
+        } catch (Exception e) {
+            return 0;
         }
     }
 }

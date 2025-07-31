@@ -30,4 +30,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     @Query("SELECT b FROM Book b WHERE b.publicationYear >= :year")
     List<Book> findByPublicationYearGreaterThanEqual(@Param("year") int year);
+
+    boolean existsByGoogleBookId(String googleBookId);
 }

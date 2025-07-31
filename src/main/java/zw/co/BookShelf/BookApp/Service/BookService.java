@@ -25,4 +25,6 @@ public interface BookService {
     void deleteBookById(Long id);
     boolean existsById(Long id);
     Page<BookSummaryDto> getAllBooksPaged(Pageable pageable, String keyword);
+    boolean existsByGoogleBookId(String googleBookId);
+    BookResponseDto saveGoogleBook(zw.co.BookShelf.BookApp.dto.GoogleBookPreviewDto dto);
 }
